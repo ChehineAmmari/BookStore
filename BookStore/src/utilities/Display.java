@@ -11,17 +11,20 @@ public final class Display {
 	
 	public static String AdminMenu = "\n****************** Admin Menu ******************\n"
 			+"\n 1) Add user"
-			+"\n 2) Add a book"
-			+"\n 3) Add an author"
-			+"\n 4) Show products"
-			+"\n 5) Show orders"
-			+"\n 6) Disconnect";
+			+"\n 2) Show books"
+			+"\n 3) Add a book"
+			+"\n 4) Update a book"
+			+"\n 5) Remove a book"
+			+"\n 6) Show orders"
+			+"\n 7) Disconnect";
 	
 	public static String ClientMenu = "\n****************** Client Menu ******************\n"
 			+"\n 1) Show books"
-			+"\n 2) Add a book to shopping cart"
-			+"\n 3) Consult shopping cart"
-			+"\n 4) Consult orders"
-			+"\n 5) Purchase"
-			+"\n 6) Disconnect";
+			+"\n 2) Consult shopping cart"
+			+"\n 3) Add a book to shopping cart"
+			+"\n 4) Update shopping cart"
+			+"\n 5) Remove a book from shopping cart"
+			+"\n 6) Consult orders"
+			+"\n 7) Purchase"
+			+"\n 8) Disconnect";
 }

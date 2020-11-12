@@ -1,60 +1,242 @@
 package store;
 
+import java.sql.Date;
 import java.util.Scanner;
 
 import humans.Admin;
-import humans.Author;
 import humans.Client;
 import humans.User;
 import stock.Book;
-import stock.Product;
 import utilities.Display;
-import utilities.PersistentData;
 
 public class Main {
 	
 	static Scanner sc = new Scanner(System.in);
 	
-	private static Author addAuthor() {
-		System.out.print("Type the author's CIN: ");
-		int cin = sc.nextInt();
+	private static void addUser() {
+		System.out.print("Give a username for the new client: ");
+		String username = sc.next();
+		System.out.println();
+		System.out.print("Give a password for the new client: ");
+		String password = sc.next();
 		System.out.println();
 		
-		System.out.print("Type the author's first name: ");
-		String firstName = sc.next();
+		Client client = new Client(username,password);
+		client.add();
+		System.out.println("Client added successfully");
+	}
+	
+	private static void addBook() {
+		System.out.print("Type the book's ISBN: ");
+		String ISBN = sc.next();
 		System.out.println();
 		
-		System.out.print("Type the author's last name: ");
-		String lastName = sc.next();
+		System.out.print("Type the book's title: ");
+		String title = sc.next();
 		System.out.println();
 		
-		System.out.print("Type the author's phone number: ");
-		String phone = sc.next();
+		System.out.print("Type the book's price: ");
+		double price = sc.nextDouble();
 		System.out.println();
 		
-		Author author = new Author(cin,firstName,lastName,phone);
-		author.add();
-		return author;
+		System.out.print("Type the book's author: ");
+		String authorName = sc.next();
+		System.out.println();
+		
+		System.out.print("Type the release date(AAAA-MM-DD): ");
+		String dateString = sc.next();
+		Date releaseDate = Date.valueOf(dateString);
+		System.out.println();
+		
+		Book book = new Book(ISBN,title,price,authorName,releaseDate);
+		book.add();
+		System.out.println("Book added successfully");
+	}
+	
+	private static void updateBook() {
+		System.out.println("Type the ISBN of the book to update");
+		String ISBN = sc.next();
+		
+		Book book = Book.getBook(ISBN);
+		System.out.print("Type the book's title: ");
+		String title = sc.next();
+		book.setTitle(title);
+		System.out.println();
+		
+		System.out.print("Type the book's price: ");
+		double price = sc.nextDouble();
+		book.setPrice(price);
+		System.out.println();
+		
+		System.out.print("Type the book's author: ");
+		String authorName = sc.next();
+		book.setAuthorName(authorName);
+		System.out.println();
+		
+		System.out.print("Type the release date(AAAA-MM-DD): ");
+		String dateString = sc.next();
+		Date releaseDate = Date.valueOf(dateString);
+		book.setReleaseDate(releaseDate);
+		System.out.println();
+		
+		book.update();
+	}
+	
+	private static void deleteBook() {
+		System.out.println("Type the ISBN of the book to delete");
+		String ISBN = sc.next();
+		
+		Book book = Book.getBook(ISBN);
+		book.remove();
+	}
+	
+	private static void addToCart(Client client) {
+		System.out.println("Type the book's ISBN");
+		String ISBN = sc.next();
+		System.out.println();
+		
+		System.out.println("Enter the quantity: ");
+		int quantity = sc.nextInt();
+		System.out.println();
+		
+		
+		Book book = Book.getBook(ISBN);
+		
+		CartLine item = new CartLine(client,book,quantity);
+		item.add();
+	}
+	
+	private static void updateCartItem(Client client) {
+		System.out.println("*************Shopping Cart content*************");
+		for(CartLine cl: CartLine.getShoppingCart(client)) {
+			System.out.println(cl);
+		}
+		
+		System.out.print("Type the item id: ");
+		int idCartLine = sc.nextInt();
+		System.out.println();
+				
+		System.out.print("Enter the new quantity");
+		int quantity = sc.nextInt();
+		System.out.println();
+		
+		CartLine item = CartLine.getCartLine(idCartLine);
+		item.setQuantity(quantity);
+		
+		item.update();
+	}
+	
+	private static void deleteCartItem(Client client) {
+		System.out.println("*************Shopping Cart content*************");
+		for(CartLine cl: CartLine.getShoppingCart(client)) {
+			System.out.println(cl);
+		}
+		
+		System.out.print("Type the item id: ");
+		int idCartLine = sc.nextInt();
+		System.out.println();
+		
+		CartLine item = CartLine.getCartLine(idCartLine);
+		item.remove();
+	}
+	
+	private static void purchase(Client client) {
+		if(!CartLine.getShoppingCart(client).isEmpty()) {
+			Order order = new Order(client);
+			order.add();
+			order.purchase();
+		}
+	}
+	
+	private static void adminMenu(boolean isAdmin) {
+		int choice;
+		admin: while(isAdmin) {
+			System.out.println(Display.AdminMenu);
+			do {
+				System.out.print("-> ");
+				choice = sc.nextInt();			
+			} while(choice < 1 && choice > 6);
+			switch(choice) {
+				case 1:
+					Main.addUser();
+					break;
+				case 2:
+					Book.showBooks();
+					break;
+				case 3:
+					Main.addBook();
+					break;
+				case 4:
+					Main.updateBook();
+					break;
+				case 5:
+					Main.deleteBook();
+					break;
+				case 6: 
+					Order.showOrders();
+					break;
+					
+				case 7:
+					break admin;
+			}
+		}
+	}
+	
+	private static void clientMenu(boolean isClient, Client client) {
+		int choice;
+		client: while(isClient) {
+			System.out.println(Display.ClientMenu);
+			do {
+				System.out.print("-> ");
+				choice = sc.nextInt();			
+			} while(choice < 1 && choice > 4);
+			
+			switch(choice) {
+				case 1:
+					Book.showBooks();
+					break;	
+				case 2: 
+					double sum = 0;
+					for(CartLine cl: CartLine.getShoppingCart(client)) {
+						System.out.println(cl);
+						sum += cl.calculateTotalPrice();
+					}
+					System.out.println("############## Total price: "+sum+" ##############");
+					break;
+				case 3:							
+					Main.addToCart(client);
+					break;
+				case 4:
+					Main.updateCartItem(client);
+					break;
+				case 5:
+					Main.deleteCartItem(client);
+					break;
+				case 6:
+					for(Order o: Order.getOrders(client) ) {
+						System.out.println(o);
+					}
+					break;	
+				case 7: 
+					Main.purchase(client);							
+					break;
+				case 8:
+					break client;
+			}
+		}
 	}
 
 	public static void main(String[] args) {
 		
-		try {
-			//initializing sonme data
-			new PersistentData();
-			
+		try {			
 			String username, password;
-			int choice,idBook,quantity;
+			int choice;
 			boolean isAdmin = false;
 			boolean isClient = false;
 			User user;
 			Client client = null;
-			ShoppingCart currentCart = null;
-			Order order = null;
 			
 			System.out.println(Display.welcome);
-			
-			
 			main : while(true) {
 				System.out.println(Display.mainMenu);
 				do {
@@ -93,141 +275,14 @@ public class Main {
 						System.exit(0);		
 				}
 							
-				admin: while(isAdmin) {
-					System.out.println(Display.AdminMenu);
-					do {
-						System.out.print("-> ");
-						choice = sc.nextInt();			
-					} while(choice < 1 && choice > 6);
-					
-					switch(choice) {
-						case 1:
-							System.out.print("Give a username for the new client: ");
-							username = sc.next();
-							System.out.println();
-							System.out.print("Give a password for the new client: ");
-							password = sc.next();
-							System.out.println();
-							
-							client = new Client(username,password);
-							client.add();
-							System.out.println("Client added successfully");
-							break;
-						case 2:
-							System.out.print("Type the book's ISBN: ");
-							String ISBN = sc.next();
-							System.out.println();
-							
-							System.out.print("Type the book's title: ");
-							String title = sc.next();
-							System.out.println();
-							
-							System.out.print("Type the book's price: ");
-							double price = sc.nextDouble();
-							System.out.println();
-							
-							System.out.print("Type the book's author: ");
-							System.out.println("\n1) New author\n2) Existing author");
-							int authorChoice;
-							do {
-								System.out.print("-> ");
-								authorChoice = sc.nextInt();			
-							} while(authorChoice < 1 && authorChoice > 2);
-							System.out.println();
-							int cin = 0;
-							switch(authorChoice) {
-								case 1:
-									cin = Main.addAuthor().getCin();
-									break;
-								case 2:
-									System.out.print("Type the author'c CIN: ");
-									cin = sc.nextInt();
-									System.out.println();
-							}
-							
-							System.out.print("Type the available quantity: ");
-							int availableQuantity = sc.nextInt();
-							System.out.println();
-							
-							Book book = new Book(ISBN,title,price,Author.getAuthor(cin),availableQuantity);
-							book.add();
-							System.out.println("Book added successfully");
-							break;
-							
-						case 3:
-							Main.addAuthor();
-							break;
-							
-						case 4:
-							Product.showAll();
-							break;
-							
-						case 5: 
-							Order.showAll();
-							break;
-							
-						case 6:
-							break admin;
-					}
-				}
+				Main.adminMenu(isAdmin);
 				
-				client: while(isClient) {
-					System.out.println(Display.ClientMenu);
-					do {
-						System.out.print("-> ");
-						choice = sc.nextInt();			
-					} while(choice < 1 && choice > 4);
-					
-					switch(choice) {
-						case 1:
-							Product.showAll();
-							break;
-						case 2:
-							currentCart = client.getCurrentCart();
-							
-							System.out.println("Type the book's ID");
-							idBook = sc.nextInt();
-							System.out.println();
-							Book book = Book.getBook(idBook);
-							
-							System.out.println("Enter the quantity: ");
-							quantity = sc.nextInt();
-							System.out.println();
-							
-							CartLine item = new CartLine(book,quantity);
-							currentCart.addItem(item);
-							break;
-							
-						case 3: 
-							currentCart = client.getCurrentCart();
-							System.out.println(currentCart);
-							break;
-							
-						case 4:
-							for(Order o: client.getOrders()) {
-								System.out.println(o);
-							}
-							break;	
-							
-						case 5: 
-							order = new Order(client.getCurrentCart());
-							order.add();
-							client.addOrder(order);
-							client.setCurrentCart(new ShoppingCart());
-							break;
-							
-						case 6:
-							break client;
-					}
-					
-				}
+				Main.clientMenu(isClient, client);
+				
 			}
 		} catch(Exception e) {
+			e.printStackTrace();
 			System.out.println("Unknown error");
-		}
-		
-		
-
+		}	
 	}
-
 }

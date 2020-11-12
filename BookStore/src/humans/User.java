@@ -1,6 +1,10 @@
 package humans;
 
-import utilities.PersistentData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+
+import database.BookStoreConnection;
 
 public class User {
 	
@@ -23,11 +27,29 @@ public class User {
 	}
 	
 	public User login() {
-		for(User p: PersistentData.users) {
-			if(this.equals(p))
-				return p;
+		User user = null;
+		String query = "SELECT * FROM `users` WHERE username='"+this.getUsername()+"' and password='"+this.getPassword()+"';";
+		try {
+			ResultSet rs = BookStoreConnection.executeQuery(query);
+			while(rs.next()) {
+				if(rs.getString(4).equals("admin"))
+					user = new Admin(
+								rs.getInt(1),
+								rs.getString(2),
+								rs.getString(3)
+							);
+				else
+					user = new Client(
+							rs.getInt(1),
+							rs.getString(2),
+							rs.getString(3)
+						);
+			}
+			return user;
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			return null;
 		}
-		return null;
 	}
 	
 	@Override
@@ -46,15 +68,87 @@ public class User {
 	}
 	
 	public void add() {
-		PersistentData.users.add(this);
+		String values = "("
+				+null+", '"
+				+this.getUsername()+"', '"
+				+this.getPassword()+"', "
+				+"'client')";
+		String query = "INSERT INTO `users` VALUES "+values;
+		try {
+			BookStoreConnection.executeUpdate(query);
+		} catch (ClassNotFoundException | SQLException e) {
+			System.out.println("Can't insert new user to database");
+			e.printStackTrace();
+		}
 	}
 	
-	public void delete() {
-		PersistentData.users.remove(this);
+	public void remove() {
+		String query = "DELETE FROM `users` WHERE idUser="+this.getId()+";";
+		try {
+			BookStoreConnection.executeUpdate(query);
+		} catch (ClassNotFoundException | SQLException e) {
+			System.out.println("This user is already removed from the database");
+			e.printStackTrace();
+		}
 	}
 	
-	public static void showAll() {
-		for(User u: PersistentData.users) {
+	public void update() {
+		String condition = "WHERE idUser="+this.getId()+";";
+		String query = "UPDATE `users` SET "
+				+"username='"+this.getUsername()+"', "
+				+"author='"+this.getPassword()+"', "
+				+condition;
+		try {
+			BookStoreConnection.executeUpdate(query);
+		} catch (ClassNotFoundException | SQLException e) {
+			System.out.println("Can't update this user");
+			e.printStackTrace();
+		}
+	}
+	
+	public static User getUser(int idUser) {
+		User user = null;
+		String query = "SELECT * FROM `users` WHERE idUser="+idUser+";";
+		try {
+			ResultSet rs = BookStoreConnection.executeQuery(query);
+			while(rs.next()) {
+				user = new User(
+							rs.getInt(1),
+							rs.getString(2),
+							rs.getString(3)
+						);
+						
+			}
+			return user;
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			return null;
+		}	
+	}
+	
+	public static ArrayList<User> getUsers() {
+		ArrayList<User> users = new ArrayList<User>();
+		String query = "SELECT * FROM `users` ;";
+		try {
+			ResultSet rs = BookStoreConnection.executeQuery(query);
+			while(rs.next()) {
+				users.add(
+						new User(
+							rs.getInt(1),
+							rs.getString(2),
+							rs.getString(3)
+						)
+				);		
+			}
+			return users;
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			return users;
+		}
+	}
+	
+	public static void showUsers() {
+		for(User u: User.getUsers()) {
 			System.out.println(u);
 		}
 	}

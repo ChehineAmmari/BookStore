@@ -1,8 +1,10 @@
 package stock;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 
-import utilities.PersistentData;
+import database.BookStoreConnection;
 
 public class Product {
 
@@ -14,6 +16,7 @@ public class Product {
 	public Product() {}
 	
 	public Product(String name, double price, int availableQuantity) {
+		lastId = this.getLastProductId();
 		this.id = ++lastId;
 		this.availableQuantity = availableQuantity;
 		this.name = name;
@@ -41,17 +44,15 @@ public class Product {
 				+"\nAvailable Quantity: "+this.availableQuantity;
 	}
 	
-	public void add() {
-		PersistentData.products.add(this);
-	}
-	
-	public void delete() {
-		PersistentData.products.remove(this);
-	}
-	
-	public static void showAll() {
-		for(Product p: PersistentData.products) {
-			System.out.println(p);
+	private int getLastProductId() {
+		String query = "SELECT COUNT(idProduct) FROM `products` ;";
+		try {
+			ResultSet rs = BookStoreConnection.executeQuery(query);
+			rs.next();
+			return rs.getInt(1);
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			return 0;
 		}
 	}
 
